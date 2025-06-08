@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Giáo Viên{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h2 class="text-center">Dashboard Giáo Viên</h2>
+            <p>Chào mừng, {{ session.get('username', 'Giáo viên') }}!</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Quản Lý Người Dùng{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h2 class="text-center">Quản Lý Người Dùng</h2>
+            <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary mb-3">Thêm Người Dùng Mới</a>
+            <ul class="list-group">
+            {% for user in users %}
+                <li class="list-group-item">{{ user.username }} ({{ user.role }}, {{ user.full_name or 'Chưa có tên' }}, {{ user.email or 'Chưa có email' }})</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

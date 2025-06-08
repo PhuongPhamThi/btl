@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Gán Học Sinh Vào Khóa Học{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h2 class="text-center">Gán Học Sinh Vào Khóa Học: {{ course.title }}</h2>
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Chọn Học Sinh</label>
+                    <select name="student_id" class="form-select">
+                        {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.username }} ({{ student.full_name or 'Chưa có tên' }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Gán Học Sinh</button>
+            </form>
+            <a href="{{ url_for('admin.manage_courses') }}" class="btn btn-secondary mt-3">Quay lại</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
