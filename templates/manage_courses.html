@@ -7,18 +7,18 @@
             <h2 class="text-center">Quản Lý Khóa Học</h2>
             <form method="POST">
                 <div class="mb-3">
-                    <label class="form-label">Tiêu đề</label>
+                    <label class="form-label">Title</label>
                     <input type="text" name="title" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Mô tả</label>
+                    <label class="form-label">Description</label>
                     <textarea name="description" class="form-control"></textarea>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Giáo viên</label>
-                    <select name="teacher_id" class="form-select">
+                    <label class="form-label">Teacher</label>
+                    <select name="teacher_id" class="form-select" required>
                         {% for teacher in teachers %}
-                            <option value="{{ teacher.id }}">{{ teacher.username }}</option>
+                            <option value="{{ teacher.id }}">{{ teacher.username }} ({{ teacher.full_name or 'Chưa có tên' }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -28,17 +28,42 @@
             <ul class="list-group">
             {% for course in courses %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ course.title }} (Giáo viên: {{ course.teacher.username }})
+                    {{ course.title }} (Giáo viên: {{ course.teachers.username if course.teachers else 'Chưa có' }})
                     <div>
-                        <a href="{{ url_for('admin.assign_student_to_course', course_id=course.id) }}" class="btn btn-info btn-sm me-2">Gán Học Sinh</a>
                         <form method="DELETE" style="display:inline;">
                             <input type="hidden" name="course_id" value="{{ course.id }}">
-                            <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</button>
                         </form>
+                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#assignModal{{ course.id }}">Gán Học Sinh</button>
+                    </div>
+                    <!-- Modal -->
+                    <div class="modal fade" id="assignModal{{ course.id }}" tabindex="-1" aria-labelledby="assignModalLabel{{ course.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="assignModalLabel{{ course.id }}">Gán Học Sinh cho {{ course.title }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form method="POST" action="{{ url_for('admin.assign_student_to_course', course_id=course.id) }}">
+                                        <div class="mb-3">
+                                            <label class="form-label">Chọn Học Sinh</label>
+                                            <select name="student_id" class="form-select" required>
+                                                {% for student in students if student not in course.students %}
+                                                    <option value="{{ student.id }}">{{ student.username }} ({{ student.full_name or 'Chưa có tên' }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Gán</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </li>
             {% endfor %}
             </ul>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary mt-3">Quay lại</a>
         </div>
     </div>
 </div>
