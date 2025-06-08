@@ -78,14 +78,33 @@ def delete_user(user_id):
         flash('Bạn không có quyền thực hiện hành động này!', 'danger')
         return redirect(url_for('auth.login'))
     
-    user = User.query.get(user_id) or Student.query.get(user_id)
-    if not user:
-        flash('Người dùng không tồn tại!', 'danger')
+    current_user_id = session.get('user_id')
+    if current_user_id == user_id:
+        flash('Bạn không thể xóa chính tài khoản admin đang đăng nhập!', 'danger')
         return redirect(url_for('admin.manage_users'))
     
-    db.session.delete(user)
-    db.session.commit()
-    flash('Xóa người dùng thành công!', 'success')
+    user = User.query.get(user_id)
+    if user:
+        if user.role == 'admin':
+            flash('Không thể xóa tài khoản admin!', 'danger')
+            return redirect(url_for('admin.manage_users'))
+        if user.role == 'teacher':
+            courses = Course.query.filter_by(teacher_id=user_id).all()
+            if courses:
+                flash('Không thể xóa giáo viên vì có khóa học liên quan. Vui lòng gán giáo viên khác hoặc xóa các khóa học trước!', 'danger')
+                return redirect(url_for('admin.manage_courses'))
+        db.session.delete(user)
+        db.session.commit()
+        flash('Xóa người dùng thành công!', 'success')
+    else:
+        student = Student.query.get(user_id)
+        if student:
+            db.session.delete(student)
+            db.session.commit()
+            flash('Xóa học sinh thành công!', 'success')
+        else:
+            flash('Người dùng không tồn tại!', 'danger')
+    
     return redirect(url_for('admin.manage_users'))
 
 @admin_bp.route('/manage_courses', methods=['GET', 'POST', 'DELETE'])
@@ -111,8 +130,13 @@ def manage_courses():
         return redirect(url_for('admin.manage_courses'))
     courses = Course.query.all()
     teachers = User.query.filter_by(role='teacher').all()
-    students = Student.query.all()
-    return render_template('manage_courses.html', courses=courses, teachers=teachers, students=students)
+    students = Student.query.all()  # Danh sách tất cả học sinh
+    # Lấy danh sách học sinh cho mỗi khóa học
+    courses_with_students = []
+    for course in courses:
+        course_students = course.students.all() if hasattr(course.students, 'all') else []
+        courses_with_students.append({'course': course, 'students': course_students})
+    return render_template('manage_courses.html', courses_with_students=courses_with_students, teachers=teachers, students=students)
 
 @admin_bp.route('/assign_student_to_course/<int:course_id>', methods=['POST'])
 def assign_student_to_course(course_id):
@@ -131,7 +155,6 @@ def assign_student_to_course(course_id):
         flash('Học sinh không tồn tại!', 'danger')
         return redirect(url_for('admin.manage_courses'))
     
-    # Sử dụng course_student trực tiếp thay vì CourseStudent
     from models import course_student
     if not db.session.query(course_student).filter_by(course_id=course_id, student_id=student_id).first():
         db.session.execute(course_student.insert().values(course_id=course_id, student_id=student_id))
@@ -141,6 +164,17 @@ def assign_student_to_course(course_id):
         flash('Học sinh đã được gán vào khóa học này!', 'danger')
     
     return redirect(url_for('admin.manage_courses'))
+
+@admin_bp.route('/view_course_students/<int:course_id>')
+def view_course_students(course_id):
+    if session.get('role') != 'admin':
+        flash('Bạn không có quyền truy cập!', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    course = Course.query.get_or_404(course_id)
+    # Xử lý đúng với lazy='dynamic' bằng cách gọi .all() trực tiếp
+    course_students = course.students.all()  # Lấy danh sách học sinh
+    return render_template('view_course_students.html', course=course, students=course_students)
 
 @admin_bp.route('/manage_students', methods=['GET', 'POST', 'DELETE'])
 def manage_students():

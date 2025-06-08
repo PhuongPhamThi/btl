@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Danh Sách Học Sinh - {{ course.title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h2 class="text-center">Danh Sách Học Sinh - {{ course.title }}</h2>
+            <p><strong>Giáo viên:</strong> {{ course.teachers.username if course.teachers else 'Chưa có' }}</p>
+            <h3>Danh Sách Học Sinh</h3>
+            <ul class="list-group">
+                {% if students %}
+                    {% for student in students %}
+                        <li class="list-group-item">
+                            {{ student.username }} ({{ student.full_name or 'Chưa có tên' }})
+                            <span class="badge bg-secondary float-end">{{ student.email }}</span>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="list-group-item">Chưa có học sinh nào trong khóa học này.</li>
+                {% endif %}
+            </ul>
+            <a href="{{ url_for('admin.manage_courses') }}" class="btn btn-secondary mt-3">Quay lại</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

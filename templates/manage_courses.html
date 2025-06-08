@@ -26,30 +26,44 @@
             </form>
             <h3 class="mt-4">Danh Sách Khóa Học</h3>
             <ul class="list-group">
-            {% for course in courses %}
+            {% for item in courses_with_students %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ course.title }} (Giáo viên: {{ course.teachers.username if course.teachers else 'Chưa có' }})
+                    {{ item.course.title }} (Giáo viên: {{ item.course.teachers.username if item.course.teachers else 'Chưa có' }})
                     <div>
                         <form method="DELETE" style="display:inline;">
-                            <input type="hidden" name="course_id" value="{{ course.id }}">
+                            <input type="hidden" name="course_id" value="{{ item.course.id }}">
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</button>
                         </form>
-                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#assignModal{{ course.id }}">Gán Học Sinh</button>
+                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#assignModal{{ item.course.id }}">Gán Học Sinh</button>
+                        <a href="{{ url_for('admin.view_course_students', course_id=item.course.id) }}" class="btn btn-success btn-sm">Xem DS Học Sinh</a>
                     </div>
+                    <!-- Hiển thị danh sách học sinh (tùy chọn, có thể bỏ nếu dùng trang riêng)
+                    <div class="mt-2">
+                        <h5>Danh Sách Học Sinh:</h5>
+                        <ul class="list-group">
+                        {% if item.students %}
+                            {% for student in item.students %}
+                                <li class="list-group-item">{{ student.username }} ({{ student.full_name or 'Chưa có tên' }})</li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item">Chưa có học sinh nào</li>
+                        {% endif %}
+                        </ul>
+                    </div> -->
                     <!-- Modal -->
-                    <div class="modal fade" id="assignModal{{ course.id }}" tabindex="-1" aria-labelledby="assignModalLabel{{ course.id }}" aria-hidden="true">
+                    <div class="modal fade" id="assignModal{{ item.course.id }}" tabindex="-1" aria-labelledby="assignModalLabel{{ item.course.id }}" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="assignModalLabel{{ course.id }}">Gán Học Sinh cho {{ course.title }}</h5>
+                                    <h5 class="modal-title" id="assignModalLabel{{ item.course.id }}">Gán Học Sinh cho {{ item.course.title }}</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <form method="POST" action="{{ url_for('admin.assign_student_to_course', course_id=course.id) }}">
+                                    <form method="POST" action="{{ url_for('admin.assign_student_to_course', course_id=item.course.id) }}">
                                         <div class="mb-3">
                                             <label class="form-label">Chọn Học Sinh</label>
                                             <select name="student_id" class="form-select" required>
-                                                {% for student in students if student not in course.students %}
+                                                {% for student in students if student not in item.students %}
                                                     <option value="{{ student.id }}">{{ student.username }} ({{ student.full_name or 'Chưa có tên' }})</option>
                                                 {% endfor %}
                                             </select>
